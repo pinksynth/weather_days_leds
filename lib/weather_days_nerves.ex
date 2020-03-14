@@ -3,7 +3,37 @@ defmodule WeatherDaysNerves do
   Documentation for WeatherDays.
   """
 
+  alias WeatherDaysNerves.Light
+
   @days_count 5
+
+  @doc """
+  Lights up LEDs based on 5 day forecast
+
+  ## Examples
+
+      iex> WeatherDays.lights_from_forecast()
+      :ok
+
+  """
+  def lights_from_forecast() do
+    with {:ok, forecast} <- get_forecast() do
+      five_days = Enum.take(forecast, @days_count)
+      forecast_with_leds = Enum.zip(five_days, days_leds())
+
+      forecast_with_leds
+      |> Enum.map(&light_from_forecast_day/1)
+
+      # :ok
+    end
+  end
+
+  defp light_from_forecast_day({%ForecastDay{status: status}, %Light{} = light}) do
+    case status do
+      :precipitation -> light |> Light.set_to_color(:blue)
+      :clear -> light |> Light.set_to_color(:white)
+    end
+  end
 
   @doc """
   Retrieves current coordinates using IPstack API. Requires IPSTACK_ACCESS_KEY var to be set.
@@ -84,10 +114,6 @@ defmodule WeatherDaysNerves do
     end
   end
 
-  def test_fun() do
-    :after_updates_over_the_air
-  end
-
   @pins [2, 3, 14, 4, 15, 18, 17, 27, 23, 22, 24, 10, 25, 9, 8]
   def initialize_gpio() do
     Enum.map(@pins, fn number ->
@@ -99,7 +125,7 @@ defmodule WeatherDaysNerves do
     end)
   end
 
-  def days() do
+  def days_leds() do
     @pins
     |> Enum.chunk_every(3)
     |> Enum.map(fn [r, g, b] ->

@@ -14,7 +14,7 @@ defmodule WeatherDaysNerves.Application do
       [
         # Children for all targets
         # Starts a worker by calling: WeatherDaysNerves.Worker.start_link(arg)
-        # {WeatherDaysNerves.Worker, arg},
+        {WeatherDaysNerves.Updater, nil}
       ] ++ children(target())
 
     Supervisor.start_link(children, opts)
